@@ -28,7 +28,7 @@ public class Comparator {
     static HashMap<String,List<Row>> duplicateinTable2= new HashMap<>();
     static HashMap<String,List<Row>> uniqueInTable1= new HashMap<>();
     static HashMap<String,List<Row>> uniqueInTable2= new HashMap<>();
-    private static HashMap<String,String>reportInformation=new HashMap<>();
+    private static LinkedHashMap<String,String>reportInformation= new LinkedHashMap<>();
 
 
     public static void main(String[] args) throws FileNotFoundException, DocumentException {
@@ -109,17 +109,21 @@ public class Comparator {
         reportInformation.put("Data Set 1",dataset1.values().size()+"");
         reportInformation.put("Dara Set 2",dataset2.values().size()+"");
 
+        reportInformation.put("Missing From table 1  ",missingFromTable1.size()+"");
+        reportInformation.put("Missing From Table 2",missingFromTable2.size()+"");
+
+        reportInformation.put("Matching  ",matching.size()+"");
+        reportInformation.put("Not Matching  ",notmatching.size()+"");
+
         reportInformation.put("Duplicate in Table1 ",duplicateinTable1.values().size()+"");
         reportInformation.put("Duplicate in Table2 ",duplicateinTable2.values().size()+"");
 
         reportInformation.put("Unique in table 1 ",uniqueInTable1.values().size()+"");
         reportInformation.put("Unique in table 2 ",uniqueInTable2.values().size()+"");
 
-        reportInformation.put("Matching  ",matching.size()+"");
-        reportInformation.put("Not Matching  ",notmatching.size()+"");
 
-        reportInformation.put("Missing From table 1  ",missingFromTable1.size()+"");
-        reportInformation.put("Missing From Table 2",missingFromTable2.size()+"");
+
+
 
         createReport();
         System.out.println("Done");
@@ -149,7 +153,7 @@ public class Comparator {
     }
 
     private static void addTableHeader(PdfPTable table) {
-        Stream.of("Data Information Name", "Size of Information")
+        Stream.of("Data Result ", "Data Size")
                 .forEach(columnTitle -> {
                     PdfPCell header = new PdfPCell();
                     header.setBackgroundColor(BaseColor.LIGHT_GRAY);
