@@ -1,13 +1,21 @@
 package com.thanglastudio.controller;
 
+import com.itextpdf.text.*;
+import com.itextpdf.text.pdf.PdfPCell;
+import com.itextpdf.text.pdf.PdfPTable;
+import com.itextpdf.text.pdf.PdfWriter;
 import com.opencsv.CSVReader;
 import com.opencsv.CSVReaderBuilder;
 import com.thanglastudio.model.CombinedRows;
 import com.thanglastudio.model.Row;
 
-import java.io.File;
-import java.io.FileReader;
+import java.io.*;
+import java.net.URISyntaxException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
+import java.util.List;
+import java.util.stream.Stream;
 
 public class Comparator {
     private static ArrayList<String[]> missingFromTable1 = new ArrayList<>();
@@ -20,17 +28,18 @@ public class Comparator {
     static HashMap<String,List<Row>> duplicateinTable2= new HashMap<>();
     static HashMap<String,List<Row>> uniqueInTable1= new HashMap<>();
     static HashMap<String,List<Row>> uniqueInTable2= new HashMap<>();
+    private static HashMap<String,String>reportInformation=new HashMap<>();
 
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws FileNotFoundException, DocumentException {
         String[][] table1 = new String[20000][201];
         String[][] table2 = new String[20000][201];
         List<Row> myList1= new ArrayList<>();
         List<Row> myList2= new ArrayList<>();
         String identifierColumns = "0";
         String comparisonColumns = "3|4";
-        File file1 = new File("/Users/admin/Downloads/f1.csv");
-        File file2 = new File("/Users/admin/Downloads/f2.csv");
+        File file1 = new File("/Users/admin/Downloads/fa.csv");
+        File file2 = new File("/Users/admin/Downloads/fb.csv");
         try {
 
             System.out.println(file1.exists());
@@ -97,9 +106,59 @@ public class Comparator {
         uniqueInTable2.keySet().removeAll(duplicateinTable2.keySet());
 
         compareFunction(uniqueInTable1, uniqueInTable2, identifierColumns, comparisonColumns);
+        reportInformation.put("Data Set 1",dataset1.values().size()+"");
+        reportInformation.put("Dara Set 2",dataset2.values().size()+"");
 
+        reportInformation.put("Duplicate in Table1 ",duplicateinTable1.values().size()+"");
+        reportInformation.put("Duplicate in Table2 ",duplicateinTable2.values().size()+"");
+
+        reportInformation.put("Unique in table 1 ",uniqueInTable1.values().size()+"");
+        reportInformation.put("Unique in table 2 ",uniqueInTable2.values().size()+"");
+
+        reportInformation.put("Matching  ",matching.size()+"");
+        reportInformation.put("Not Matching  ",notmatching.size()+"");
+
+        reportInformation.put("Missing From table 1  ",missingFromTable1.size()+"");
+        reportInformation.put("Missing From Table 2",missingFromTable2.size()+"");
+
+        createReport();
         System.out.println("Done");
     }
+
+    private static void createReport () throws FileNotFoundException, DocumentException {
+        Document document = new Document();
+        PdfWriter.getInstance(document, new FileOutputStream("/Users/admin/Downloads/comparisonReport.pdf"));
+
+        document.open();
+
+        PdfPTable table = new PdfPTable(2);
+        addTableHeader(table);
+        addRows(table);
+        //addCustomRows(table);
+        document.add(table);
+        document.close();
+
+    }
+
+    private static void addRows(PdfPTable table) {
+
+        for (Map.Entry entry:reportInformation.entrySet()){
+            table.addCell(entry.getKey().toString());
+            table.addCell(entry.getValue().toString());
+        }
+    }
+
+    private static void addTableHeader(PdfPTable table) {
+        Stream.of("Data Information Name", "Size of Information")
+                .forEach(columnTitle -> {
+                    PdfPCell header = new PdfPCell();
+                    header.setBackgroundColor(BaseColor.LIGHT_GRAY);
+                    header.setBorderWidth(2);
+                    header.setPhrase(new Phrase(columnTitle));
+                    table.addCell(header);
+                });
+    }
+
     public static HashMap<String, List<Row>>  collectDuplicates(List<Row> rows) {
         HashMap<String,List<Row>> duplicateMap= new HashMap<>();
         for(Row row:rows){
